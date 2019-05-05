@@ -17,5 +17,13 @@
 }
 
 #com-chilipeppr-widget-xbox-robot .nodevice {
-   padding:10px;
+    padding:10px;
+}
+
+#com-chilipeppr-widget-xbox-robot .actionname {
+    padding:2px 8px; 
+    position:absolute; 
+    bottom:0px; 
+    left:0;
+    /*height:50px;*/
 }

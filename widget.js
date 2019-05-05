@@ -259,14 +259,14 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
                     return;
                 }
                 this.jogLastFreqWrist3 = freq;
-                this.showAction("Changed jog freq to " + freq);
+                this.showAction("Wrist3: Changed jog freq to " + freq);
                 console.log("changing freq:", freq, "e:", e);
             } else {
                 // jogging has not started. 
                 
                 // start it.
                 // freq = 10;
-                this.showAction("Started jog at freq " + freq);
+                this.showAction("Wrist3: Started jog at freq " + freq);
                 console.log("starting jog. freq:", freq, "e:", e);
                 this.isJogStartedWrist3 = true;
                 this.jogLastFreqWrist3 = freq;
@@ -292,7 +292,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
                     if (val < deadZone) {
                         // joystick back to center, so stop jogging
                         console.log("stopping jog. val:", val, "deadZone:", deadZone);
-                        this.showAction("Stopped jogging");
+                        this.showAction("Wrist3: Stopped jogging");
                         this.isJogStartedWrist3 = false;
                         this.jogTsWrist3 = Date.now() + 500; // so we can debounce. add extra 500ms
                     }
