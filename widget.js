@@ -269,6 +269,10 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
                 this.jogLastFreqWrist3 = freq;
                 this.showAction("Wrist3: Changed jog freq to " + freq);
                 console.log("changing freq:", freq, "e:", e);
+                
+                // Send off to ESP32 device
+                chilipeppr.publish("/com-chilipeppr-widget-cayenn/sendToDeviceNameViaTcp", "Wrist3", {Cmd:"JogFreq", Freq:freq} );
+
             } else {
                 // jogging has not started. 
                 
@@ -276,6 +280,10 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
                 // freq = 10;
                 this.showAction("Wrist3: Started jog at freq " + freq);
                 console.log("starting jog. freq:", freq, "e:", e);
+                
+                // Send off to ESP32 device
+                chilipeppr.publish("/com-chilipeppr-widget-cayenn/sendToDeviceNameViaTcp", "Wrist3", {Cmd:"JogStart"} );
+                
                 this.isJogStartedWrist3 = true;
                 this.jogLastFreqWrist3 = freq;
             }
@@ -301,6 +309,10 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
                         // joystick back to center, so stop jogging
                         console.log("stopping jog. val:", val, "deadZone:", deadZone);
                         this.showAction("Wrist3: Stopped jogging");
+                        
+                        // Send off to ESP32 device
+                        chilipeppr.publish("/com-chilipeppr-widget-cayenn/sendToDeviceNameViaTcp", "Wrist3", {Cmd:"JogStop"} );
+                        
                         this.isJogStartedWrist3 = false;
                         this.jogTsWrist3 = Date.now() + 500; // so we can debounce. add extra 500ms
                     }
