@@ -1,4 +1,5 @@
 // ChiliPeppr Runme.js
+// RUNME VERSION FOR WIDGETS
 
 // You should right-click and choose "Run" inside Cloud9 to run this
 // Node.js server script. Then choose "Preview" to load the main HTML page
@@ -21,8 +22,16 @@ var mimeTypes = {
   "jpg": "image/jpeg",
   "png": "image/png", 
   "js": "text/javascript",
-  "css": "text/css"
+  "css": "text/css",
+  "json": "application/json",
 };
+
+console.log("Starting...");
+
+if (process.env.PORT == undefined) {
+  console.log("Port undefined from env var so setting to 9000");
+  process.env.PORT = 9000;
+}
 
 http.createServer(function(req, res) {
 
@@ -1552,49 +1561,48 @@ var getMainPage = function() {
   return html;
 }
 
-var getGithubUrl = function() {
+var fileAutoGeneratePath = "auto-generated-widget.html"
+var fileJsPath = "widget.js"
+var fileCssPath = "widget.css"
+var fileHtmlPath = "widget.html"
 
-    // new approach. use the command line from git
-    // git config --get remote.origin.url
-    
-    var childproc = require('child_process');
-    var cmd = 'git config --get remote.origin.url';
-    
-    var stdout = childproc.execSync(cmd, { encoding: 'utf8' });
-    //console.log("Got the following Github URL:", stdout);
-    
-    // see what format we got back
-    if (stdout.match(/\.git/)) {
-        
-        // format is git@github.com:chilipeppr/widget-xbox.git
-        var re = /.*github.com:/i;
-        var url = stdout.replace(re, "");
-        url = url.replace(/.git[\s\S]*$/i, ""); // remove end
-        
-        // prepend with clean githut url
-        url = "http://github.com/" + url;
-        
-        var rawurl = url.replace(/\/github.com\//i, "/raw.githubusercontent.com/");
-        rawurl += '/master/auto-generated-widget.html';
-        
-    } else {
-        
-        // format is https://github.com/chilipeppr/widget-xbox
-        // console.log("format has no .git in it");
-        url = stdout;
-        url = url.replace(/[\s]*$/i, ""); // remove end
-        // console.log(url);
-        var rawurl = url.replace(/\/github.com\//i, "/raw.githubusercontent.com/");
-        rawurl += '/master/auto-generated-widget.html';
-    }
-    var ret = {
-        stdout: stdout,
-        url: url,
-        rawurl : rawurl
-    };
-    
-    //console.log("ret:", ret);
-    return ret;
+var getGithubUrl = function(callback) {
+
+  // new approach. use the command line from git
+  // git config --get remote.origin.url
+  
+  var childproc = require('child_process');
+  var cmd = 'git config --get remote.origin.url';
+
+  var stdout = childproc.execSync(cmd, { encoding: 'utf8' });
+  console.log("Got the following Github URL:", stdout);
+  
+  // remove newline
+  stdout = stdout.replace(/\n/g, "");
+
+  var re = /.*github.com:/i;
+  var url = stdout.replace(re, "");
+  url = url.replace(/.git[\s\S]{0,1}$/i, ""); // remove end
+  console.log("after removing *.git:", url);
+
+  // see if github.com already in url
+  if (url.startsWith("https://github.com") || url.startsWith("http://github.com")) {
+    // full url already in there
+  } else {
+    // prepend with clean githut url
+    url = "http://github.com/" + url;
+  }
+  
+  var rawurl = url.replace(/\/github.com\//i, "/raw.githubusercontent.com/");
+  rawurl += '/master/' + fileAutoGeneratePath;
+  
+  var ret = {
+    url: url,
+    rawurl : rawurl
+  };
+  
+  console.log("ret:", ret);
+  return ret;
     
 }
 
@@ -1633,37 +1641,50 @@ var getAllUrls = function() {
 
     */
     if (isAwsEnvironment()) {
-        // we are in AWS
-        
-        // get region
-        var region = whichAwsRegion();
-        
-        // https://us-west-2.console.aws.amazon.com/cloud9/ide/83c03ab3f6f9431aa813882decbfc4aa
-        ret.edit = 'https://' + region + '.console.aws.amazon.com/cloud9/ide/' + process.env.C9_PID;
-        // https://vfs.cloud9.us-west-2.amazonaws.com/vfs/83c03ab3f6f9431aa813882decbfc4aa/preview/widget-xbox/widget.html
-        ret.test = 'https://vfs.cloud9.' + region + '.amazonaws.com/vfs/' + 
-            process.env.C9_PID + '/preview/' + 
-            process.env.C9_PROJECT + '/widget.html';
-        // http://83c03ab3f6f9431aa813882decbfc4aa.vfs.cloud9.us-west-2.amazonaws.com/widget.html
-        ret.testNoSsl = 'http://' + process.env.C9_PID + '.vfs.cloud9.' + region + '.amazonaws.com/widget.html';
-        // http://83c03ab3f6f9431aa813882decbfc4aa.vfs.cloud9.us-west-2.amazonaws.com/
-        ret.runmeHomepage = 'https://' + process.env.C9_PID + '.vfs.cloud9.' + region + '.amazonaws.com/';
-    } else {
-        // we are in original cloud9
-        // var ret.edit = 'http://' +
-        //     process.env.C9_PROJECT + '-' + process.env.C9_USER +
-        //     '.c9users.io/widget.html';
-        ret.edit = 'http://ide.c9.io/' +
-            process.env.C9_USER + '/' +
-            process.env.C9_PROJECT;
-        ret.test = 'https://preview.c9users.io/' +
-            process.env.C9_USER + '/' +
-            process.env.C9_PROJECT + '/widget.html';
-        ret.testNoSsl = 'http://' + process.env.C9_PROJECT +
-            '-' + process.env.C9_USER + '.c9users.io/widget.html';
-        // https://widget-xbox-chilipeppr.c9users.io/
-        ret.runmeHomepage = 'https://' + process.env.C9_PROJECT +
-            '-' + process.env.C9_USER + '.c9users.io/';
+      // we are in AWS
+      
+      // get region
+      var region = whichAwsRegion();
+      
+      // https://us-west-2.console.aws.amazon.com/cloud9/ide/83c03ab3f6f9431aa813882decbfc4aa
+      ret.edit = 'https://' + region + '.console.aws.amazon.com/cloud9/ide/' + process.env.C9_PID;
+      // https://vfs.cloud9.us-west-2.amazonaws.com/vfs/83c03ab3f6f9431aa813882decbfc4aa/preview/widget-xbox/widget.html
+      ret.test = 'https://vfs.cloud9.' + region + '.amazonaws.com/vfs/' + 
+          process.env.C9_PID + '/preview/' + 
+          process.env.C9_PROJECT + '/widget.html';
+      // http://83c03ab3f6f9431aa813882decbfc4aa.vfs.cloud9.us-west-2.amazonaws.com/widget.html
+      ret.testNoSsl = 'http://' + process.env.C9_PID + '.vfs.cloud9.' + region + '.amazonaws.com/widget.html';
+      // http://83c03ab3f6f9431aa813882decbfc4aa.vfs.cloud9.us-west-2.amazonaws.com/
+      ret.runmeHomepage = 'https://' + process.env.C9_PID + '.vfs.cloud9.' + region + '.amazonaws.com/';
+    
+    } else if (isC9Environment()) {
+      // we are in original cloud9
+      // var ret.edit = 'http://' +
+      //     process.env.C9_PROJECT + '-' + process.env.C9_USER +
+      //     '.c9users.io/widget.html';
+      ret.edit = 'http://ide.c9.io/' +
+          process.env.C9_USER + '/' +
+          process.env.C9_PROJECT;
+      ret.test = 'https://preview.c9users.io/' +
+          process.env.C9_USER + '/' +
+          process.env.C9_PROJECT + '/widget.html';
+      ret.testNoSsl = 'http://' + process.env.C9_PROJECT +
+          '-' + process.env.C9_USER + '.c9users.io/widget.html';
+      // https://widget-xbox-chilipeppr.c9users.io/
+      ret.runmeHomepage = 'https://' + process.env.C9_PROJECT +
+          '-' + process.env.C9_USER + '.c9users.io/';
+    } else  {
+
+      // we are in localhost
+      console.log("We are on a local machine. Setting vars based on that.");
+      // var ret.edit = 'http://' +
+      //     process.env.C9_PROJECT + '-' + process.env.C9_USER +
+      //     '.c9users.io/widget.html';
+      ret.edit = '(Local dev. No edit URL)';
+      ret.test = 'http://localhost:' + process.env.PORT + '/widget.html';
+      ret.testNoSsl = 'http://localhost:' + process.env.PORT + '/widget.html';
+      // https://widget-xbox-chilipeppr.c9users.io/
+      ret.runmeHomepage = 'http://localhost:' + process.env.PORT + '/';
     }
     
     return ret;
@@ -1684,6 +1705,23 @@ var isAwsEnvironment = function() {
     } else {
         return false;
     }
+}
+
+var isC9Environment = function() {
+  
+  // Cloud9 instances have C9 environment variables, so we should be able to use that
+  // to distinguish from original cloud9 to AWS's version
+  // var childproc = require('child_process');
+  // var cmd = 'env | grep C9';
+  // var stdout = childproc.execSync(cmd, { encoding: 'utf8' });
+  var listOfEnvs = Object.keys(process.env).join(",");
+  // console.log("isCloud9OrAws:", listOfEnvs);
+  
+  if (listOfEnvs.match(/C9/)) {
+      return true;
+  } else {
+      return false;
+  }
 }
 
 var whichAwsRegion = function() {
