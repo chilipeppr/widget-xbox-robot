@@ -3,7 +3,7 @@ This widget lets you control ChiliPeppr from an Xbox controller.
 
 ![alt text](screenshot.png "Screenshot")
 
-## ChiliPeppr Widget / Xbox
+## ChiliPeppr Widget / Xbox Robot
 
 All ChiliPeppr widgets/elements are defined using cpdefine() which is a method
 that mimics require.js. Each defined object must have a unique ID so it does
@@ -12,7 +12,7 @@ not conflict with other ChiliPeppr widgets.
 | Item                  | Value           |
 | -------------         | ------------- | 
 | ID                    | com-chilipeppr-widget-xbox-robot |
-| Name                  | Widget / Xbox |
+| Name                  | Widget / Xbox Robot |
 | Description           | This widget lets you control ChiliPeppr from an Xbox controller. |
 | chilipeppr.load() URL | https://raw.githubusercontent.com/chilipeppr/widget-xbox-robot/master/auto-generated-widget.html |
 | Edit URL              | https://us-west-2.console.aws.amazon.com/cloud9/ide/fcd56ad85d9943df8091fef77f3fc364 |
@@ -41,7 +41,7 @@ chilipeppr.load(
       ["inline:com-chilipeppr-widget-xbox-robot"], // the id you gave your widget
       function(myObjWidgetXboxRobot) {
         // Callback that is passed reference to the newly loaded widget
-        console.log("Widget / Xbox just got loaded.", myObjWidgetXboxRobot);
+        console.log("Widget / Xbox Robot just got loaded.", myObjWidgetXboxRobot);
         myObjWidgetXboxRobot.init();
       }
     );
@@ -132,7 +132,7 @@ The table below shows, in order, the methods and properties inside the widget/el
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>id</td><td>string</td><td>"com-chilipeppr-widget-xbox-robot"<br><br>The ID of the widget. You must define this and make it unique.</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / Xbox"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"This widget lets you control ChiliPeppr from an Xbox controller."</td></tr><tr valign="top"><td>url</td><td>string</td><td>"https://raw.githubusercontent.com/chilipeppr/widget-xbox-robot/master/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"https://us-west-2.console.aws.amazon.com/cloud9/ide/fcd56ad85d9943df8091fef77f3fc364"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"https://github.com/chilipeppr/widget-xbox-robot"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"https://vfs.cloud9.us-west-2.amazonaws.com/vfs/fcd56ad85d9943df8091fef77f3fc364/preview/widget-xbox-robot/widget.html"</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.<br><br>Define the publish signals that this widget/element owns or defines so that
+      <tr valign="top"><td>id</td><td>string</td><td>"com-chilipeppr-widget-xbox-robot"<br><br>The ID of the widget. You must define this and make it unique.</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / Xbox Robot"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"This widget lets you control ChiliPeppr from an Xbox controller."</td></tr><tr valign="top"><td>url</td><td>string</td><td>"https://raw.githubusercontent.com/chilipeppr/widget-xbox-robot/master/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"https://us-west-2.console.aws.amazon.com/cloud9/ide/fcd56ad85d9943df8091fef77f3fc364"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"https://github.com/chilipeppr/widget-xbox-robot"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"https://vfs.cloud9.us-west-2.amazonaws.com/vfs/fcd56ad85d9943df8091fef77f3fc364/preview/widget-xbox-robot/widget.html"</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.<br><br>Define the publish signals that this widget/element owns or defines so that
 other widgets know how to subscribe to them and what they do.</td></tr><tr valign="top"><td>subscribe</td><td>object</td><td>Please see docs above.<br><br>Define the subscribe signals that this widget/element owns or defines so that
 other widgets know how to subscribe to them and what they do.</td></tr><tr valign="top"><td>foreignPublish</td><td>object</td><td>Please see docs above.<br><br>Document the foreign publish signals, i.e. signals owned by other widgets
 or elements, that this widget/element publishes to.</td></tr><tr valign="top"><td>foreignSubscribe</td><td>object</td><td>Please see docs above.<br><br>Document the foreign subscribe signals, i.e. signals owned by other widgets
