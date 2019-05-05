@@ -34,7 +34,7 @@ requirejs.config({
     }
 });
 
-cprequire_test(["inline:com-chilipeppr-widget-xbox"], function(myWidget) {
+cprequire_test(["inline:com-chilipeppr-widget-xbox-robot"], function(myWidget) {
 
     // Test this element. This code is auto-removed by the chilipeppr.load()
     // when using this widget in production. So use the cpquire_test to do things
@@ -74,12 +74,12 @@ cprequire_test(["inline:com-chilipeppr-widget-xbox"], function(myWidget) {
 } /*end_test*/ );
 
 // This is the main definition of your widget. Give it a unique name.
-cpdefine("inline:com-chilipeppr-widget-xbox", ["chilipeppr_ready", /* other dependencies here */ ], function() {
+cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* other dependencies here */ ], function() {
     return {
         /**
          * The ID of the widget. You must define this and make it unique.
          */
-        id: "com-chilipeppr-widget-xbox", // Make the id the same as the cpdefine id
+        id: "com-chilipeppr-widget-xbox-robot", // Make the id the same as the cpdefine id
         name: "Widget / Xbox", // The descriptive name of your widget.
         desc: "This widget lets you control ChiliPeppr from an Xbox controller.", // A description of what your widget does
         url: "(auto fill by runme.js)",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
@@ -460,33 +460,33 @@ cpdefine("inline:com-chilipeppr-widget-xbox", ["chilipeppr_ready", /* other depe
         	var mainImg = $('#' + this.id + " .panel-body img");
         	mainImg.on('click', this.onMainBodyImgClick.bind(this));
         	
-            $("#com-chilipeppr-widget-xbox-settings-container > .slider").each(function(){
-                if ( this.id == 'com-chilipeppr-widget-xbox-incjog' ) {
+            $("#com-chilipeppr-widget-xbox-robot-settings-container > .slider").each(function(){
+                if ( this.id == 'com-chilipeppr-widget-xbox-robot-incjog' ) {
         	        $(this).prev('span').text( this.value / 10 )
         	    } else {
                     $(this).prev('span').text(this.value)
         	    }
             });
-        	$('#com-chilipeppr-widget-xbox-settings-container > .slider').on("input", function(e) {
-        	    if ( e.target.id == 'com-chilipeppr-widget-xbox-incjog' ) {
+        	$('#com-chilipeppr-widget-xbox-robot-settings-container > .slider').on("input", function(e) {
+        	    if ( e.target.id == 'com-chilipeppr-widget-xbox-robot-incjog' ) {
         	        $(e.target).prev('span').text( $(e.target).val() / 10 )
         	    } else {
                     $(e.target).prev('span').text( $(e.target).val() )
         	    }
             });
-            $('#com-chilipeppr-widget-xbox-settings-container > .slider').on("change", function(e) {
-                that.options.Deadzone = $('#com-chilipeppr-widget-xbox-deadzone').val();
-                that.options.RateXY = $('#com-chilipeppr-widget-xbox-ratexy').val();
-                that.options.RateZ = $('#com-chilipeppr-widget-xbox-ratez').val();
-                that.options.IncJog = $('#com-chilipeppr-widget-xbox-incjog').val();
-                that.options.RPM = $('#com-chilipeppr-widget-xbox-rpm').val();
+            $('#com-chilipeppr-widget-xbox-robot-settings-container > .slider').on("change", function(e) {
+                that.options.Deadzone = $('#com-chilipeppr-widget-xbox-robot-deadzone').val();
+                that.options.RateXY = $('#com-chilipeppr-widget-xbox-robot-ratexy').val();
+                that.options.RateZ = $('#com-chilipeppr-widget-xbox-robot-ratez').val();
+                that.options.IncJog = $('#com-chilipeppr-widget-xbox-robot-incjog').val();
+                that.options.RPM = $('#com-chilipeppr-widget-xbox-robot-rpm').val();
                 that.saveOptionsLocalStorage();
             });
 			
         },
         onMainBodyImgClick: function(evt) {
         	console.log("got click on main image body. evt:", evt);
-        	var modal = $('#com-chilipeppr-widget-xbox-modal');
+        	var modal = $('#com-chilipeppr-widget-xbox-robot-modal');
 			modal.modal();
         },
         /**
@@ -608,11 +608,11 @@ cpdefine("inline:com-chilipeppr-widget-xbox", ["chilipeppr_ready", /* other depe
                 this.hideBody();
             }
             
-            $('#com-chilipeppr-widget-xbox-deadzone').val(options.Deadzone);
-            $('#com-chilipeppr-widget-xbox-ratexy').val(options.RateXY);
-            $('#com-chilipeppr-widget-xbox-ratez').val(options.RateZ);
-            $('#com-chilipeppr-widget-xbox-incjog').val(options.IncJog);
-            $('#com-chilipeppr-widget-xbox-rpm').val(options.RPM);
+            $('#com-chilipeppr-widget-xbox-robot-deadzone').val(options.Deadzone);
+            $('#com-chilipeppr-widget-xbox-robot-ratexy').val(options.RateXY);
+            $('#com-chilipeppr-widget-xbox-robot-ratez').val(options.RateZ);
+            $('#com-chilipeppr-widget-xbox-robot-incjog').val(options.IncJog);
+            $('#com-chilipeppr-widget-xbox-robot-rpm').val(options.RPM);
 
         },
         /**
