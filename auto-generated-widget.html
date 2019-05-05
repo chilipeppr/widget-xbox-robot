@@ -235,6 +235,14 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
                 desc + " Vibration: Yes";
             }
             $("#" + this.id + " .devicename").removeClass("hidden").text(desc);
+            
+            // do some stuff for the workspace to show this widget automatically
+		    if ($('#com-chilipeppr-ws-xbox').hasClass("hidden")) {
+		        console.log("trying to show XBox widget in workspace");
+                $('#com-chilipeppr-ws-xbox').removeClass("hidden");
+                $('#com-chilipeppr-ws-menu .xbox-button').addClass("active");
+            }
+
         },
         onXboxDisconnect: function(device) {
             console.log("got onXboxDisconnect event. device:", device);
@@ -405,7 +413,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
             var lastTimestamp = 0; // debounce this by timestamp length
             gamepad.bind(Gamepad.Event.CONNECTED, function(device) {
                 // if we got this event too recently, just ignore
-                if (lastTimestamp == 0 || device.timestamp > lastTimestamp + 1000 * 60 * 1) {
+                if (lastTimestamp == 0 || device.timestamp > lastTimestamp + 1000 * 60 * 1) { // 1 minute
                     
                     lastTimestamp = Date.now();
                     
@@ -415,10 +423,6 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
             		  //  console.log("found xbox controller;");
             		  //  chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', 
             		  //  "Xbox Controller Found", "Device: " + device.index, 500, false); 
-            		    if ($('#com-chilipeppr-ws-xbox').hasClass("hidden")) {
-                            $('#com-chilipeppr-ws-xbox').removeClass("hidden");
-                            $('#com-chilipeppr-ws-menu .xbox-button').addClass("active");
-                        }
                         chilipeppr.publish('/com-chilipeppr-xbox-robot/onXboxControllerConnected', device);
             		}
             		
