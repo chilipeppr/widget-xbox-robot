@@ -55,9 +55,14 @@
 
         </div>
         <div class="panel-body" style="padding:0;">
-            
-            
-            
+        
+            <!-- No device -->
+            <div class="nodevice alert-warning">
+                No XBox controller detected. Please pair your controller and
+                hit any button on it so the browser knows it's alive. You
+                may also have to close and re-open all windows on 
+                your browser. Then hit <a href="javascript:" class="xboxrefresh">refresh</a>.
+            </div>
             
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
@@ -71,7 +76,9 @@
             <div class="tab-content">
     
                 <!-- Tab 1 -->
-                <div class="tab-pane active" id="com-chilipeppr-widget-xbox-robot-tab1">
+                <div class="tab-pane active" id="com-chilipeppr-widget-xbox-robot-tab1" style="position:relative;">
+                    <div class="devicename alert-info hidden" style="padding:2px 8px; ">Device 0 found.</div>
+                    <div class="actionname alert-warning hidden" style="padding:2px 8px; position:absolute; top:30px; left:0;">Button 1</div>
                     <img src="https://raw.githubusercontent.com/chilipeppr/widget-xbox-robot/master/xbox.jpg" style="width:100%;height:100%;cursor:pointer;"/>
                     <!--<img src="xbox.jpg" style="width:100%;height:100%;cursor:pointer;"/>-->
                 </div>
@@ -94,7 +101,16 @@
 
                 <!-- Tab 3 -->
                 <div class="tab-pane" id="com-chilipeppr-widget-xbox-robot-tab3">
-                    <p>You must connect your Xbox controller before you open your browser.
+                    
+                    <p>For XBox controllers, you need a more recent one that supports
+                    Bluetooth. Then pair your Xbox controller via Bluetooth to your computer.
+                    </p>
+                    
+                    <p>This widget will detect the connection of the XBox controller 
+                    automatically.</p>
+                    
+                    <p>In older versions of browsers, you must connect your Xbox 
+                    controller before you open your browser.
                     Please note, this includes browser windows other than ChiliPeppr.
                     You must fully close all browser windows, turn on the controller,
                     then open the browser.</p>
@@ -105,7 +121,7 @@
         </div>
     </div>
     
-        <!-- Cayenn File Pre-Process Modal -->
+    <!-- Zoom Image Modal -->
     <div class="modal fade " id="com-chilipeppr-widget-xbox-robot-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

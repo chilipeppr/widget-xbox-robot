@@ -31,6 +31,10 @@
 #com-chilipeppr-widget-xbox-robot-tab3 {
     padding:20px;
 }
+
+#com-chilipeppr-widget-xbox-robot .nodevice {
+   padding:10px;
+}
     </style>
 
     <script type='text/javascript'>
@@ -134,7 +138,8 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
          */
         publish: {
             // Define a key:value pair here as strings to document what signals you publish.
-            
+            '/onXboxControllerConnected': 'This signal gets published when an XBox controller is found. Payload is the Gamepad() object.',
+            '/onXboxControllerDisconnected': 'This signal gets published when an XBox controller is disconnected. Payload is the Gamepad() object.',
         },
         /**
          * Define the subscribe signals that this widget/element owns or defines so that
@@ -180,6 +185,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
             this.btnSetup();
             this.forkSetup();
             
+            this.setupRefreshBtn();
             this.setupGamepad();
             this.setupBody();
             
@@ -187,6 +193,161 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
             chilipeppr.subscribe("/com-chilipeppr-interface-cnccontroller/plannerresume", this, this.onPlannerResume);
 
             console.log("I am done being initted.");
+        },
+        // Will contain button action element for easy referral
+        elAction: null,
+        // Setup the refresh capabilities
+        setupRefreshBtn: function() {
+            $(".xboxrefresh").click(this.onGamepadRefresh.bind(this)); 
+            
+            this.elAction = $("#" + this.id + " .actionname");
+
+            chilipeppr.subscribe('/com-chilipeppr-xbox-robot/onXboxControllerConnected', this, this.onXboxConnect);
+            chilipeppr.subscribe('/com-chilipeppr-xbox-robot/onXboxControllerDisconnected', this, this.onXboxDisconnect);
+        },
+        /**
+         * This is called to rescan for Gamepad devices.
+         */
+        onGamepadRefresh: function() {
+            this.setupGamepad();
+            console.log("done refreshing. this.gamepad:", this.gamepad, "this.gamepad.gamepads:", this.gamepad.gamepads);
+            
+            // we will get a callback from /onXboxControllerConnected
+        },
+        onXboxConnect: function(device) {
+            console.log("got onXboxConnect event. device:", device, "index:", device.index);
+            this.gamepadDevice = device;
+            this.gamepadIndex = device.index;
+            $("#" + this.id + " .nodevice").addClass("hidden");
+            var desc = device.id + " " + 
+                " Index: " + device.index + 
+                " Buttons: " + device.buttons.length +
+                " Axes: " + device.axes.length;
+            if (device.vibrationActuator && device.vibrationActuator.type) {
+                desc + " Vibration: Yes";
+            }
+            $("#" + this.id + " .devicename").removeClass("hidden").text(desc);
+        },
+        onXboxDisconnect: function(device) {
+            console.log("got onXboxDisconnect event. device:", device);
+        },
+        // Show the action
+        showAction: function(txt) {
+            this.elAction.text(txt);
+            this.elAction.removeClass("hidden");
+        },
+        // map number range to another range
+        scale: function(num, in_min, in_max, out_min, out_max) {
+          return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        },
+        mapJoystickToHz: function(joystickVal) {
+            
+            // see if negative, if so take abs val, then make negative at end
+            var isNegative = false;
+            if (joystickVal < 0) {
+                isNegative = true;
+                joystickVal = joystickVal * -1;
+            }
+            
+            var val = Math.round( this.scale(joystickVal, 0.2, 1.0, this.jogHzMin, this.jogHzMax) / 10 ) * 10;   
+            
+            if (isNegative) val = val * -1;
+            
+            return val;
+        },
+        // bool to keep track of whether jogging or not on wrist 3
+        isJogStartedWrist3: false,
+        // debounce counter to not start too fast after a stop
+        jogTsWrist3: 0,
+        // max Hz to jog
+        jogHzMax: 1000,
+        // min Hz to jog
+        jogHzMin: 10,
+        // last freq we sent, so can debounce sending redundant freq
+        jogLastFreqWrist3: 0,
+        // Jog Wrist3
+        jogAxisChangedWrist3: function(e) {
+            
+            // check for too fast on this call to debounce
+            // cuz joystick seems to flick around and we can't pound the
+            // ESP32
+            if (Date.now() - this.jogTsWrist3 < 500) { // 1 second
+                // console.log("debounced");
+                return;
+            }
+            
+            // drop anything inside of the deadzone
+            var deadZone = this.options.Deadzone / 100;
+                    
+            var val = Math.abs(e.value);
+            // console.log("val: ", val, "deadZone:", deadZone);
+            if (val < deadZone) {
+                console.log("dropped cuz in deadZone");
+                return;
+            }
+            
+            this.jogTsWrist3 = Date.now();
+
+            // console.log("got jogWrist3. e:", e);
+            
+            var freq = this.mapJoystickToHz(e.value);
+            
+            if (this.isJogStartedWrist3) {
+                // we would get here when we've already started jogging
+                // but are changing frequency
+                if (this.jogLastFreqWrist3 == freq) {
+                    // console.log("freq same as last time: ", freq);
+                    return;
+                }
+                this.jogLastFreqWrist3 = freq;
+                this.showAction("Changed jog freq to " + freq);
+                console.log("changing freq:", freq, "e:", e);
+            } else {
+                // jogging has not started. 
+                
+                // start it.
+                // freq = 10;
+                this.showAction("Started jog at freq " + freq);
+                console.log("starting jog. freq:", freq, "e:", e);
+                this.isJogStartedWrist3 = true;
+                this.jogLastFreqWrist3 = freq;
+            }
+            
+
+        },
+        // Start Wrist3 jog
+        jogTickWrist3: function(gamepads) {
+            
+            // if jog isn't started, just ignore this function call
+            // cuz we get it 60 times per second
+            if (this.isJogStartedWrist3) {
+                // console.log("wrist3 tick. gamepads:", gamepads);
+                
+                if (gamepads && gamepads.length > 0) {
+                    // console.log("wrist3. got gamepads:", gamepads);
+                    
+                    var deadZone = this.options.Deadzone / 100;
+                    
+                    var val = Math.abs(gamepads[this.gamepadIndex].state['RIGHT_STICK_Y']);
+                    // console.log("val: ", val, "deadZone:", deadZone);
+                    if (val < deadZone) {
+                        // joystick back to center, so stop jogging
+                        console.log("stopping jog. val:", val, "deadZone:", deadZone);
+                        this.showAction("Stopped jogging");
+                        this.isJogStartedWrist3 = false;
+                        this.jogTsWrist3 = Date.now() + 500; // so we can debounce. add extra 500ms
+                    }
+                }
+            }
+            
+        },
+        // Stop Wrist3 jog
+        jogStopWrist3: function() {
+            
+        },
+        // Increment Wrist3 jog
+        jogChangeWrist3: function(val) {
+            
         },
         /**
          * Keep track of whether we sent flood/coolant on or off last time
@@ -201,6 +362,9 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
          * This object holds the instance of Gamepad library in a usable object.
          */
         gamepad: null, // instance
+        isGamepadFail: false,
+        gamepadDevice: null, // contains the 1 xbox controller we're using
+        gamepadIndex: null, // contains index of gamepadDevice
         /**
          * This method sets up the events we bind to for receiving incoming actions from the 
          * Xbox controller.
@@ -230,28 +394,46 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
             var that = this;
             
             // Attach to events
+            var lastTimestamp = 0; // debounce this by timestamp length
             gamepad.bind(Gamepad.Event.CONNECTED, function(device) {
-        		// a new gamepad connected
-        		console.log("new gamepad connected. device:", device);
-        		if (device.id.match(/xbox/i)) {
-        		    console.log("found xbox controller;");
-        		    chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', 
-        		    "Xbox Controller Found", "Device: " + device.index, 500, false); 
-        		    if ($('#com-chilipeppr-ws-xbox').hasClass("hidden")) {
-                        $('#com-chilipeppr-ws-xbox').removeClass("hidden");
-                        $('#com-chilipeppr-ws-menu .xbox-button').addClass("active");
-                    }
-        		}
+                // if we got this event too recently, just ignore
+                if (lastTimestamp == 0 || device.timestamp > lastTimestamp + 1000 * 60 * 1) {
+                    
+                    lastTimestamp = Date.now();
+                    
+            		// a new gamepad connected
+            		console.log("new gamepad connected. device:", device);
+            		if (device.id.match(/xbox/i)) {
+            		  //  console.log("found xbox controller;");
+            		  //  chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', 
+            		  //  "Xbox Controller Found", "Device: " + device.index, 500, false); 
+            		    if ($('#com-chilipeppr-ws-xbox').hasClass("hidden")) {
+                            $('#com-chilipeppr-ws-xbox').removeClass("hidden");
+                            $('#com-chilipeppr-ws-menu .xbox-button').addClass("active");
+                        }
+                        chilipeppr.publish('/com-chilipeppr-xbox-robot/onXboxControllerConnected', device);
+            		}
+            		
+                }
         	});
         
         	gamepad.bind(Gamepad.Event.DISCONNECTED, function(device) {
-        		// gamepad disconnected, hide the widget
-        		console.log("gamepad disconnected. device:", device);
-    		    if (!$('#com-chilipeppr-ws-xbox').hasClass("hidden")) {
-                    $('#com-chilipeppr-ws-xbox').addClass("hidden");
-                    $('#com-chilipeppr-ws-menu .xbox-button').removeClass("active");
-                }
-        	});
+        	    
+        	    if (lastTimestamp == 0 || device.timestamp > lastTimestamp + 1000 * 60 * 1) {
+                    
+                    lastTimestamp = Date.now()
+                    
+            		// gamepad disconnected, hide the widget
+            		console.log("gamepad disconnected. device:", device);
+        		    if (!$('#com-chilipeppr-ws-xbox').hasClass("hidden")) {
+                        $('#com-chilipeppr-ws-xbox').addClass("hidden");
+                        $('#com-chilipeppr-ws-menu .xbox-button').removeClass("active");
+                    }
+                    chilipeppr.publish('/com-chilipeppr-xbox-robot/onXboxControllerDisconnected', device);
+        	
+        	    }
+        	        
+    	    });
         
         	gamepad.bind(Gamepad.Event.UNSUPPORTED, function(device) {
         		// an unsupported gamepad connected (add new mapping)
@@ -261,7 +443,9 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
         	gamepad.bind(Gamepad.Event.BUTTON_DOWN, function(e) {
         		// e.control of gamepad e.gamepad pressed down
         		console.log("e.control of gamepad e.gamepad pressed down. e:", e);
-        		 
+        		
+        		that.showAction("Button " + e.control);
+        		
         		switch (e.control) {
         		    case 'FACE_1':
         		        // Got A button for z probing
@@ -323,9 +507,9 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
         		        chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', 
         		            "Xbox Controller Button Down", "Toggle Jog Enable: " + that.joggingEnabled, 500, true);
         		        break;
-        		    default:
-        		        chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', 
-        		            "Xbox Controller Button Down", "Control: " + e.control, 500, true);
+        		  //  default:
+        		      //  chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', 
+        		      //      "Xbox Controller Button Down", "Control: " + e.control, 500, true);
         		}    
         	});
         	
@@ -342,15 +526,21 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
         		    console.log('Start Jog');
         		    that.jogStarted = true;
         		    that.gpIndex = e.gamepad.index;
-        		} else if ( (e.axis = 'RIGHT_STICK_Y') && Math.abs(e.value) > (deadZone + 0.1) && that.joggingEnabled && !that.zjogStarted && !that.jogStarted) {
-        		    console.log('Start zJog');
-        		    that.zjogStarted = true;
-        		    that.gpIndex = e.gamepad.index;
+        		} else if (e.axis == "RIGHT_STICK_Y") { // ( (e.axis = 'RIGHT_STICK_Y') && Math.abs(e.value) > (deadZone + 0.1) && that.joggingEnabled && !that.zjogStarted && !that.jogStarted) {
+        		    that.jogAxisChangedWrist3(e);
+        		  //  console.log('Start zJog');
+        		  //  that.zjogStarted = true;
+        		  //  that.gpIndex = e.gamepad.index;
         		}
         	});
         
             slowDown: 0;  //60hz is just too fast
 	        gamepad.bind(Gamepad.Event.TICK, function(gamepads) {
+	            
+	            // console.log("got tick. gamepads:", gamepads);
+	            that.jogTickWrist3(gamepads);
+	            return;
+	            
 	        	// gamepads were updated (around 60 times a second)
 	        	var deadZone = that.options.Deadzone / 100;
 	        	
@@ -382,6 +572,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
 	        });
             
             if (!gamepad.init()) {
+                this.isGamepadFail = true;
         		// Your browser does not support gamepads, get the latest Google Chrome or Firefox
         		console.log("Your browser does not support gamepads, get the latest Google Chrome or Firefox");
         	}
@@ -820,8 +1011,13 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
 		 * This method calls the (user) update and restarts itself
 		 * @method tickFunction
 		 */
+		var debounceCnt = 0;
 		this.tickFunction = function() {
-			that.update();
+		    debounceCnt++;
+		    if (debounceCnt > 10) {
+		        debounceCnt = 0;
+    			that.update();
+		    }
 			that.startTicker();
 		};
 
@@ -1950,9 +2146,14 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
 
         </div>
         <div class="panel-body" style="padding:0;">
-            
-            
-            
+        
+            <!-- No device -->
+            <div class="nodevice alert-warning">
+                No XBox controller detected. Please pair your controller and
+                hit any button on it so the browser knows it's alive. You
+                may also have to close and re-open all windows on 
+                your browser. Then hit <a href="javascript:" class="xboxrefresh">refresh</a>.
+            </div>
             
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
@@ -1966,7 +2167,9 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
             <div class="tab-content">
     
                 <!-- Tab 1 -->
-                <div class="tab-pane active" id="com-chilipeppr-widget-xbox-robot-tab1">
+                <div class="tab-pane active" id="com-chilipeppr-widget-xbox-robot-tab1" style="position:relative;">
+                    <div class="devicename alert-info hidden" style="padding:2px 8px; ">Device 0 found.</div>
+                    <div class="actionname alert-warning hidden" style="padding:2px 8px; position:absolute; top:30px; left:0;">Button 1</div>
                     <img src="https://raw.githubusercontent.com/chilipeppr/widget-xbox-robot/master/xbox.jpg" style="width:100%;height:100%;cursor:pointer;"/>
                     <!--<img src="xbox.jpg" style="width:100%;height:100%;cursor:pointer;"/>-->
                 </div>
@@ -1989,7 +2192,16 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
 
                 <!-- Tab 3 -->
                 <div class="tab-pane" id="com-chilipeppr-widget-xbox-robot-tab3">
-                    <p>You must connect your Xbox controller before you open your browser.
+                    
+                    <p>For XBox controllers, you need a more recent one that supports
+                    Bluetooth. Then pair your Xbox controller via Bluetooth to your computer.
+                    </p>
+                    
+                    <p>This widget will detect the connection of the XBox controller 
+                    automatically.</p>
+                    
+                    <p>In older versions of browsers, you must connect your Xbox 
+                    controller before you open your browser.
                     Please note, this includes browser windows other than ChiliPeppr.
                     You must fully close all browser windows, turn on the controller,
                     then open the browser.</p>
@@ -2000,7 +2212,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
         </div>
     </div>
     
-        <!-- Cayenn File Pre-Process Modal -->
+    <!-- Zoom Image Modal -->
     <div class="modal fade " id="com-chilipeppr-widget-xbox-robot-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
