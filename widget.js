@@ -989,7 +989,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
 		var debounceCnt = 0;
 		this.tickFunction = function() {
 		    debounceCnt++;
-		    if (debounceCnt > 10) {
+		    if (debounceCnt > 6) {
 		        debounceCnt = 0;
     			that.update();
 		    }
