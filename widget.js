@@ -238,7 +238,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
             // check for too fast on this call to debounce
             // cuz joystick seems to flick around and we can't pound the
             // ESP32
-            if (Date.now() - this.jogTsWrist3 < 500) { // 1 second
+            if (Date.now() - this.jogTsWrist3 < 250) { // 0.25 sec 
                 // console.log("debounced");
                 return;
             }
