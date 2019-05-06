@@ -227,9 +227,9 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
         // debounce counter to not start too fast after a stop
         jogTsWrist3: 0,
         // max Hz to jog
-        jogHzMax: 1000,
+        jogHzMax: 500,
         // min Hz to jog
-        jogHzMin: 10,
+        jogHzMin: 2,
         // last freq we sent, so can debounce sending redundant freq
         jogLastFreqWrist3: 0,
         // Jog Wrist3
@@ -282,7 +282,7 @@ cpdefine("inline:com-chilipeppr-widget-xbox-robot", ["chilipeppr_ready", /* othe
                 console.log("starting jog. freq:", freq, "e:", e);
                 
                 // Send off to ESP32 device
-                chilipeppr.publish("/com-chilipeppr-widget-cayenn/sendToDeviceNameViaTcp", "Wrist3", {Cmd:"JogStart"} );
+                chilipeppr.publish("/com-chilipeppr-widget-cayenn/sendToDeviceNameViaTcp", "Wrist3", {Cmd:"JogStart", Freq:freq} );
                 
                 this.isJogStartedWrist3 = true;
                 this.jogLastFreqWrist3 = freq;
