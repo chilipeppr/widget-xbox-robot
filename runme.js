@@ -1,5 +1,4 @@
 // ChiliPeppr Runme.js
-// RUNME VERSION FOR WIDGETS
 
 // You should right-click and choose "Run" inside Cloud9 to run this
 // Node.js server script. Then choose "Preview" to load the main HTML page
@@ -22,15 +21,14 @@ var mimeTypes = {
   "jpg": "image/jpeg",
   "png": "image/png", 
   "js": "text/javascript",
-  "css": "text/css",
-  "json": "application/json",
+  "css": "text/css"
 };
 
 console.log("Starting...");
 
 if (process.env.PORT == undefined) {
-  console.log("Port undefined from env var so setting to 9000");
-  process.env.PORT = 9000;
+  process.env.PORT = 9004;
+  console.log("Port undefined from env var so setting to " + process.env.PORT);
 }
 
 http.createServer(function(req, res) {
@@ -1576,9 +1574,6 @@ var getGithubUrl = function(callback) {
 
   var stdout = childproc.execSync(cmd, { encoding: 'utf8' });
   console.log("Got the following Github URL:", stdout);
-  
-  // remove newline
-  stdout = stdout.replace(/\n/g, "");
 
   var re = /.*github.com:/i;
   var url = stdout.replace(re, "");
@@ -1656,7 +1651,6 @@ var getAllUrls = function() {
       ret.testNoSsl = 'http://' + process.env.C9_PID + '.vfs.cloud9.' + region + '.amazonaws.com/widget.html';
       // http://83c03ab3f6f9431aa813882decbfc4aa.vfs.cloud9.us-west-2.amazonaws.com/
       ret.runmeHomepage = 'https://' + process.env.C9_PID + '.vfs.cloud9.' + region + '.amazonaws.com/';
-    
     } else if (isC9Environment()) {
       // we are in original cloud9
       // var ret.edit = 'http://' +

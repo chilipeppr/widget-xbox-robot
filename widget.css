@@ -27,3 +27,12 @@
     left:0;
     /*height:50px;*/
 }
+
+#com-chilipeppr-widget-xbox-robot .stick-data {
+    width:30%;
+}
+
+.stick-region td {
+    padding:2px 8px;
+    font-size: 10px;
+}
